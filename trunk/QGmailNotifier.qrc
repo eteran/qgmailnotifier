@@ -1,0 +1,10 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/">
+	<file>img/blue.svgz</file>
+	<file>img/error.svgz</file>
+	<file>img/gmail.png</file>
+	<file>img/green.svgz</file>
+	<file>img/normal.svgz</file>
+	<file>img/close.png</file>
+</qresource>
+</RCC>
