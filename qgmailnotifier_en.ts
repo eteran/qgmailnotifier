@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="en_US">
+<!DOCTYPE TS><TS version="1.1" language="en_US">
+<defaultcodec></defaultcodec>
 <context>
     <name>DialogOptions</name>
     <message>
@@ -37,57 +37,57 @@
 <context>
     <name>QGmailNotifier</name>
     <message>
-        <location filename="QGmailNotifier.cpp" line="82"/>
+        <location filename="QGmailNotifier.cpp" line="83"/>
         <source>View Inbox</source>
         <translation>View Inbox</translation>
     </message>
     <message>
-        <location filename="QGmailNotifier.cpp" line="83"/>
+        <location filename="QGmailNotifier.cpp" line="84"/>
         <source>Compose a Message</source>
         <translation>Compose a Message</translation>
     </message>
     <message>
-        <location filename="QGmailNotifier.cpp" line="84"/>
+        <location filename="QGmailNotifier.cpp" line="85"/>
         <source>Check Mail Now</source>
         <translation>Check Mail Now</translation>
     </message>
     <message>
-        <location filename="QGmailNotifier.cpp" line="85"/>
+        <location filename="QGmailNotifier.cpp" line="86"/>
         <source>Tell me Again...</source>
         <translation>Tell me Again...</translation>
     </message>
     <message>
-        <location filename="QGmailNotifier.cpp" line="86"/>
+        <location filename="QGmailNotifier.cpp" line="87"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="QGmailNotifier.cpp" line="87"/>
+        <location filename="QGmailNotifier.cpp" line="88"/>
         <source>About</source>
         <translation>About</translation>
     </message>
     <message>
-        <location filename="QGmailNotifier.cpp" line="92"/>
+        <location filename="QGmailNotifier.cpp" line="93"/>
         <source>Unread Conversations</source>
         <translation>Unread Conversations</translation>
     </message>
     <message>
-        <location filename="QGmailNotifier.cpp" line="109"/>
+        <location filename="QGmailNotifier.cpp" line="110"/>
         <source>Exit</source>
         <translation>Exit</translation>
     </message>
     <message>
-        <location filename="QGmailNotifier.cpp" line="264"/>
+        <location filename="QGmailNotifier.cpp" line="263"/>
         <source>%1 unread conversation</source>
         <translation>%1 unread conversation</translation>
     </message>
     <message>
-        <location filename="QGmailNotifier.cpp" line="266"/>
+        <location filename="QGmailNotifier.cpp" line="265"/>
         <source>%1 unread conversations</source>
         <translation>%1 unread conversations</translation>
     </message>
     <message>
-        <location filename="QGmailNotifier.cpp" line="135"/>
+        <location filename="QGmailNotifier.cpp" line="136"/>
         <source>Reading feed</source>
         <translation>Reading feed</translation>
     </message>
@@ -97,38 +97,22 @@
         <translation>QGmailNotifier</translation>
     </message>
     <message>
-        <location filename="QGmailNotifier.cpp" line="237"/>
-        <source>QGmailNotifier version %1. Written by Evan Teran
-Icons are the trademark of Google
-
-Google, Gmail and Google Mail are registered trademarks of Google Inc.
-QGmailNotifier nor its author are in any way affiliated nor endorsed by Google Inc.
-</source>
-        <translation>QGmailNotifier version %1. Written by Evan Teran
-Icons are the trademark of Google
-
-Google, Gmail and Google Mail are registered trademarks of Google Inc.
-QGmailNotifier nor its author are in any way affiliated nor endorsed by Google Inc.
-</translation>
+        <location filename="QGmailNotifier.cpp" line="240"/>
+        <source>QGmailNotifier version 2008.1. Written by &lt;a href=&apos;mailto:eteran@alum.rit.edu&apos;&gt;Evan Teran&lt;/a&gt;&lt;br&gt;Icons are the trademark of &lt;a href=&apos;http://www.google.com/&apos;&gt;Google&lt;/a&gt;&lt;br&gt;&lt;br&gt;Google, Gmail and Google Mail are registered trademarks of Google Inc.&lt;br&gt;QGmailNotifier nor its author are in any way affiliated nor endorsed by Google Inc.&lt;br&gt;</source>
+        <translation>QGmailNotifier version 2008.1. Written by &lt;a href=&apos;mailto:eteran@alum.rit.edu&apos;&gt;Evan Teran&lt;/a&gt;&lt;br&gt;Icons are the trademark of &lt;a href=&apos;http://www.google.com/&apos;&gt;Google&lt;/a&gt;&lt;br&gt;&lt;br&gt;Google, Gmail and Google Mail are registered trademarks of Google Inc.&lt;br&gt;QGmailNotifier nor its author are in any way affiliated nor endorsed by Google Inc.&lt;br&gt;</translation>
     </message>
 </context>
 <context>
-    <name>QMessageBox</name>
+    <name>QObject</name>
     <message>
-        <location filename="main.cpp" line="25"/>
-        <location filename="main.cpp" line="31"/>
+        <location filename="main.cpp" line="24"/>
         <source>QGmailNotifier</source>
-        <translation type="unfinished">QGmailNotifier</translation>
+        <translation>QGmailNotifier</translation>
     </message>
     <message>
-        <location filename="main.cpp" line="25"/>
+        <location filename="main.cpp" line="24"/>
         <source>I couldn&apos;t detect any system tray on this system.</source>
-        <translation type="unfinished">I couldn&apos;t detect any system tray on this system.</translation>
-    </message>
-    <message>
-        <location filename="main.cpp" line="31"/>
-        <source>I couldn&apos;t detect any SSL supporton this system. Perhaps you need to rebuild QT with SSL support.</source>
-        <translation type="unfinished">I couldn&apos;t detect any SSL supporton this system. Perhaps you need to rebuild QT with SSL support.</translation>
+        <translation>I couldn&apos;t detect any system tray on this system.</translation>
     </message>
 </context>
 </TS>

@@ -2,15 +2,13 @@
 #ifndef GMAILFEED_20080725_H_
 #define GMAILFEED_20080725_H_
 
-#include <QMap>
 #include <QObject>
-#include <QString>
-#include <QVector>
+#include <QHttpResponseHeader>
+#include <QHttp>
 #include <QXmlStreamReader>
-
-class QNetworkAccessManager;
-class QNetworkReply;
-class QAuthenticator;
+#include <QString>
+#include <QDebug>
+#include <QVector>
 
 struct GMailEntry {
 	QString title;
@@ -23,36 +21,37 @@ struct GMailEntry {
 	QString author_email;
 };
 
-struct Credentials {
-	QString user;
-	QString pass;
-};
-
 class GMailFeed : public QObject {
 	Q_OBJECT
-
+	
 public:
 	GMailFeed(QObject *parent = 0);
-
+	
 public:
 	void fetch(const QString &user, const QString &pass);
-	const QVector<GMailEntry> &mail() const { return entries_; }
-
-public Q_SLOTS:
-	void onAuthenticationRequestSlot(QNetworkReply *reply, QAuthenticator *authenticator);
-	void requestFinished(QNetworkReply *reply);
-
-Q_SIGNALS:
-	void fetchComplete(QNetworkReply *reply);
-
+	const QVector<GMailEntry> &mail() const { return m_Entries; }
+	const QHttp *http() const { return &m_HTTP; }
+public slots:
+	void done(bool error);
+	void readData(const QHttpResponseHeader &);
+	
+signals:
+	void fetchComplete(bool);
+	
 private:
 	void parseXml();
-
+	
 private:
-	QXmlStreamReader	               xmlReader_;
-	QNetworkAccessManager             *networkManager_;
-	QMap<QNetworkReply *, Credentials> credentials_;
-	QVector<GMailEntry>	               entries_;
+	QHttp				m_HTTP;
+	QXmlStreamReader	m_XML;
+	
+	QString linkString;
+	QString currentTag;
+	QString titleString;
+	bool m_InEntry;
+	bool m_InAuthor;
+	
+	QVector<GMailEntry> m_Entries;
 };
 
 #endif

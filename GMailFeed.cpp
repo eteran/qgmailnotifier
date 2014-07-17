@@ -1,125 +1,106 @@
 
 #include "GMailFeed.h"
-#include <QAuthenticator>
+#include <QHttp>
 #include <QBuffer>
-#include <QDebug>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
+#include <QXmlStreamReader>
 
 //------------------------------------------------------------------------------
-// Name: GMailFeed
-// Desc:
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
-GMailFeed::GMailFeed(QObject *parent) : QObject(parent), networkManager_(0) {
-	networkManager_ = new QNetworkAccessManager(this);
-	connect(networkManager_, SIGNAL(authenticationRequired(QNetworkReply*, QAuthenticator*)), this, SLOT(onAuthenticationRequestSlot(QNetworkReply*, QAuthenticator*)));
-	connect(networkManager_, SIGNAL(finished(QNetworkReply *)), this, SLOT(requestFinished(QNetworkReply *)));	
+GMailFeed::GMailFeed(QObject *parent) : QObject(parent), m_HTTP(this), m_InEntry(false), m_InAuthor(false) {
+	connect(&m_HTTP, SIGNAL(done(bool)), this, SLOT(done(bool)));
+	connect(&m_HTTP, SIGNAL(readyRead(const QHttpResponseHeader &)), this, SLOT(readData(const QHttpResponseHeader &)));
 }
 
 //------------------------------------------------------------------------------
-// Name: onAuthenticationRequestSlot
-// Desc:
-//------------------------------------------------------------------------------
-void GMailFeed::onAuthenticationRequestSlot(QNetworkReply *reply, QAuthenticator *authenticator) {
-	
-	Credentials creds = credentials_.take(reply);
-	
-	authenticator->setUser(creds.user);
-	authenticator->setPassword(creds.pass);
-}
-
-//------------------------------------------------------------------------------
-// Name: fetch
-// Desc:
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void GMailFeed::fetch(const QString &user, const QString &pass) {
-
-	entries_.clear();
-	xmlReader_.clear();
-
-	QNetworkRequest request;
-	request.setUrl(QUrl("https://mail.google.com/mail/feed/atom"));
-	QNetworkReply *const r = networkManager_->get(request);
 	
-	Credentials creds;
-	creds.user = user;
-	creds.pass = pass;
-	
-	credentials_.insert(r, creds);
+	m_Entries.clear();
+	m_XML.clear();
+
+	m_HTTP.setHost("mail.google.com", QHttp::ConnectionModeHttps);
+	m_HTTP.setUser(user, pass);
+	m_HTTP.get("/mail/feed/atom");
 }
 
 //------------------------------------------------------------------------------
-// Name: requestFinished
-// Desc:
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
-void GMailFeed::requestFinished(QNetworkReply *reply) {
+void GMailFeed::done(bool error) {
+	emit fetchComplete(error);
+}
 
-	if(reply->error() != QNetworkReply::NoError) {
-		qWarning() << "Aborting: got status code: " << reply->error();
-	} else {
-		const QByteArray data = reply->readAll();
-		xmlReader_.addData(data);
+//------------------------------------------------------------------------------
+// Name: 
+// Desc: 
+//------------------------------------------------------------------------------
+void GMailFeed::readData(const QHttpResponseHeader &resp) {
+
+	QByteArray data = m_HTTP.readAll();
+
+	if (resp.statusCode() != 200)
+		m_HTTP.abort();
+	else {
+		m_XML.addData(data);
 		parseXml();
 	}
-	
-	Q_EMIT fetchComplete(reply);
 }
 
 //------------------------------------------------------------------------------
-// Name: parseXml
-// Desc:
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void GMailFeed::parseXml(){
 
-	QString currentTag;
-	bool inEntry = false;
-	bool inAuthor = false;
-
-	while (!xmlReader_.atEnd()) {
-
-		xmlReader_.readNext();
-
-		if (xmlReader_.isStartElement()) {
-
-			if (xmlReader_.name() == "entry") {
-				inEntry = true;
-				entries_.push_back(GMailEntry());
-			} else if (xmlReader_.name() == "author") {
-				inAuthor = true;
-			} else if(inEntry && xmlReader_.name() == "link") {
-				entries_.last().link = xmlReader_.attributes().value("href").toString();
+	while (!m_XML.atEnd()) {
+		
+		m_XML.readNext();
+		
+		if (m_XML.isStartElement()) {
+			
+			if (m_XML.name() == "entry") {
+				m_InEntry = true;
+				m_Entries.push_back(GMailEntry());
+			} else if (m_XML.name() == "author") {
+				m_InAuthor = true;
+			} else if(m_InEntry && m_XML.name() == "link") {
+				m_Entries.last().link = m_XML.attributes().value("href").toString();
 			}
-
-			currentTag = xmlReader_.name().toString();
-		} else if (xmlReader_.isEndElement()) {
-			if (xmlReader_.name() == "entry") {
-				inEntry = false;
-			} else if (xmlReader_.name() == "author") {
-				inAuthor = false;
+				
+			currentTag = m_XML.name().toString();
+		} else if (m_XML.isEndElement()) {
+			if (m_XML.name() == "entry") {
+				m_InEntry = false;
+			} else if (m_XML.name() == "author") {
+				m_InAuthor = false;
 
 			}
-		} else if (xmlReader_.isCharacters() && !xmlReader_.isWhitespace()) {
-
-			if(inEntry) {
+		} else if (m_XML.isCharacters() && !m_XML.isWhitespace()) {
+						
+			if(m_InEntry) {
 				if (currentTag == "title") {
-					entries_.last().title += xmlReader_.text().toString();
+					m_Entries.last().title += m_XML.text().toString();
 				} else if (currentTag == "summary") {
-					entries_.last().summary += xmlReader_.text().toString();
+					m_Entries.last().summary += m_XML.text().toString();
 				} else if (currentTag == "link") {
-					entries_.last().link = xmlReader_.attributes().value("href").toString();
+					m_Entries.last().link = m_XML.attributes().value("href").toString();
 				} else if (currentTag == "modified") {
-					entries_.last().modified = xmlReader_.text().toString();
+					m_Entries.last().modified = m_XML.text().toString();
 				} else if (currentTag == "issued") {
-					entries_.last().issued = xmlReader_.text().toString();
+					m_Entries.last().issued = m_XML.text().toString();
 				} else if (currentTag == "id") {
-					entries_.last().id = xmlReader_.text().toString();
+					m_Entries.last().id = m_XML.text().toString();
 				} else {
-					if(inAuthor) {
+					if(m_InAuthor) {
 						if (currentTag == "name") {
-							entries_.last().author_name += xmlReader_.text().toString();
+							m_Entries.last().author_name += m_XML.text().toString();
 						} else if (currentTag == "email") {
-							entries_.last().author_email = xmlReader_.text().toString();
+							m_Entries.last().author_email = m_XML.text().toString();
 						}
 					}
 				}
@@ -127,7 +108,8 @@ void GMailFeed::parseXml(){
 		}
 	}
 
-	if (xmlReader_.error() && xmlReader_.error() != QXmlStreamReader::PrematureEndOfDocumentError) {
-		qWarning() << "XML ERROR:" << xmlReader_.lineNumber() << ": " << xmlReader_.errorString();
+	if (m_XML.error() && m_XML.error() != QXmlStreamReader::PrematureEndOfDocumentError) {
+		qWarning() << "XML ERROR:" << m_XML.lineNumber() << ": " << m_XML.errorString();
+		m_HTTP.abort();
 	}
 }
