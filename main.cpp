@@ -1,11 +1,10 @@
 
 #include "QGmailNotifier.h"
 #include <QApplication>
-#include <QLibraryInfo>
+#include <QtGui>
 #include <QLocale>
-#include <QMessageBox>
-#include <QSslSocket>
-#include <QTranslator>
+
+#include "PopupWindow.h"
 
 //------------------------------------------------------------------------------
 // Name: main(int argc, char *argv[])
@@ -13,8 +12,10 @@
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[]) {
 
-	QApplication app(argc, argv);
+	Q_INIT_RESOURCE(QGmailNotifier);
 
+	QApplication app(argc, argv);
+	
 	// setup organization info so settings go in right place
 	QApplication::setOrganizationName("codef00.com");
 	QApplication::setOrganizationDomain("codef00.com");
@@ -22,13 +23,7 @@ int main(int argc, char *argv[]) {
 
 	// if system tray's aren't available on the system, then forget it
 	if (!QSystemTrayIcon::isSystemTrayAvailable()) {
-		QMessageBox::critical(0, QMessageBox::tr("QGmailNotifier"), QMessageBox::tr("I couldn't detect any system tray on this system."));
-		return 1;
-	}
-
-	// also, we only support the SSL version
-	if(!QSslSocket::supportsSsl()) {
-		QMessageBox::critical(0, QMessageBox::tr("QGmailNotifier"), QMessageBox::tr("I couldn't detect any SSL supporton this system. Perhaps you need to rebuild QT with SSL support."));
+		QMessageBox::critical(0, QObject::tr("QGmailNotifier"), QObject::tr("I couldn't detect any system tray on this system."));
 		return 1;
 	}
 
@@ -42,10 +37,10 @@ int main(int argc, char *argv[]) {
 
 	QTranslator myappTranslator;
 	myappTranslator.load("qgmailnotifier_" + QLocale::system().name());
-	app.installTranslator(&myappTranslator);
-
+	app.installTranslator(&myappTranslator);		
+	
 	// start it up
 	QGmailNotifier gmail;
-
+	
 	return app.exec();
 }
