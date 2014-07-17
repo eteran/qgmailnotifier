@@ -1,72 +1,71 @@
 
 #include "QGmailNotifier.h"
-#include "version.h"
-#include <QDebug>
-#include <QDesktopServices>
 #include <QMenu>
-#include <QNetworkReply>
-#include <QPainter>
-#include <QSettings>
-#include <QTimer>
+#include <QApplication>
+#include <QDesktopServices>
 #include <QUrl>
+#include <QMessageBox>
+#include <QSettings>
 
 //------------------------------------------------------------------------------
-// Name: QGmailNotifier
-// Desc:
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
-QGmailNotifier::QGmailNotifier(QWidget *parent, Qt::WindowFlags f) : QDialog(parent, f), trayIcon_(0), alertIndex_(-1), animationIndex_(0) {
-
+QGmailNotifier::QGmailNotifier(QWidget *parent, Qt::WindowFlags f) : QDialog(parent, f), trayIcon(0), m_AlertIndex(-1), m_AnimIndex(0) {
+	
 	ui.setupUi(this);
+	
+	m_GmailFeed = new GMailFeed(this);
+	connect(m_GmailFeed, SIGNAL(fetchComplete(bool)), this, SLOT(fetchComplete(bool)));
 
-	gmailFeed_ = new GMailFeed(this);
-	connect(gmailFeed_, SIGNAL(fetchComplete(QNetworkReply *)), this, SLOT(fetchComplete(QNetworkReply *)));
-
-	trayIcon_ = new QSystemTrayIcon(this);
-	trayIcon_->setContextMenu(createMenu());
-	trayIcon_->setIcon(QIcon(":/img/normal.svgz"));
-
-	connect(trayIcon_, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(activated(QSystemTrayIcon::ActivationReason)));
-	connect(trayIcon_, SIGNAL(messageClicked()), this, SLOT(messageClicked()));
-
-	trayIcon_->show();
-
+	trayIcon = new QSystemTrayIcon(this);
+	trayIcon->setContextMenu(createMenu());
+	trayIcon->setIcon(QIcon(":/img/normal.ico"));
+	
+	connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(activated(QSystemTrayIcon::ActivationReason)));
+	connect(trayIcon, SIGNAL(messageClicked()), this, SLOT(messageClicked()));
+	
+	trayIcon->show();
+	
 	// start the check timer
-	timer_ = new QTimer(this);
-	connect(timer_, SIGNAL(timeout()), this, SLOT(doCheck()));
-	timer_->start(0);
-
+	m_Timer = new QTimer(this);
+	connect(m_Timer, SIGNAL(timeout()), this, SLOT(doCheck()));
+	m_Timer->start(0);
+	
 	// setup the anim timer
-	animationTimer_ = new QTimer(this);
-	connect(animationTimer_, SIGNAL(timeout()), this, SLOT(doAnim()));
+	m_AnimTimer = new QTimer(this);
+	connect(m_AnimTimer, SIGNAL(timeout()), this, SLOT(doAnim()));
 }
 
 //------------------------------------------------------------------------------
-// Name: doAnim
-// Desc:
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::doAnim() {
-
-	if(animationIndex_ == 0) {
-		trayIcon_->setIcon(QIcon(":/img/green.svgz"));
+	
+	if(m_AnimIndex == 0) {
+		trayIcon->setIcon(QIcon(":/img/green.ico"));
 	} else {
-		trayIcon_->setIcon(QIcon(":/img/normal.svgz"));
+		trayIcon->setIcon(QIcon(":/img/normal.ico"));
 	}
-
-	animationIndex_ = (animationIndex_ + 1) % 2;
+	
+	m_AnimIndex = (m_AnimIndex + 1) % 2;
 }
 
 //------------------------------------------------------------------------------
-// Name: doCompose
-// Desc:
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::doCompose() {
-	openURL("http://mail.google.com/mail/#compose");
+	QDesktopServices::openUrl(QUrl("http://mail.google.com/mail/#compose"));
+	qDebug() << "opening URL: " << "http://mail.google.com/mail/#compose";
+	
 }
 
 
 //------------------------------------------------------------------------------
-// Name: readConversation
-// Desc:
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::readConversation() {
 	QAction *const action = qobject_cast<QAction *>(sender());
@@ -75,29 +74,29 @@ void QGmailNotifier::readConversation() {
 }
 
 //------------------------------------------------------------------------------
-// Name: createMenu
-// Desc:
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 QMenu *QGmailNotifier::createMenu() {
 	QMenu *const menu = new QMenu(this);
-	QAction *const view		= menu->addAction(tr("View Inbox"), this, SLOT(doView()));
-	menu->addAction(tr("Compose a Message"), this, SLOT(doCompose()));
-	menu->addAction(tr("Check Mail Now"), this, SLOT(doCheck()));
-	menu->addAction(tr("Tell me Again..."), this, SLOT(doTell()));
-	menu->addAction(tr("Options"), this, SLOT(doOptions()));
-	menu->addAction(tr("About"), this, SLOT(doAbout()));
-
-	if(currentMails_.size() != 0) {
+	QAction *const view		= menu->addAction(QObject::tr("View Inbox"), this, SLOT(doView()));
+	menu->addAction(QObject::tr("Compose a Message"), this, SLOT(doCompose()));
+	menu->addAction(QObject::tr("Check Mail Now"), this, SLOT(doCheck()));
+	menu->addAction(QObject::tr("Tell me Again..."), this, SLOT(doTell()));
+	menu->addAction(QObject::tr("Options"), this, SLOT(doOptions()));
+	menu->addAction(QObject::tr("About"), this, SLOT(doAbout()));
+	
+	if(m_CurrentMails.size() != 0) {
 
 		menu->addSeparator();
-		QMenu *const convsations = menu->addMenu(tr("Unread Conversations"));
-
+		QMenu *const convsations = menu->addMenu(QObject::tr("Unread Conversations"));
+		
 		QSettings settings;
-
+		
 		const int maxCons = settings.value("max_conversations", 10).value<int>();
-
+		
 		int index = 0;
-		Q_FOREACH(GMailEntry entry, currentMails_) {
+		foreach(GMailEntry entry, m_CurrentMails) {
 			QAction *const action = convsations->addAction(entry.author_name + " : " + entry.title, this, SLOT(readConversation()));
 			action->setData(index++);
 			if(index >= maxCons) {
@@ -105,17 +104,17 @@ QMenu *QGmailNotifier::createMenu() {
 			}
 		}
 	}
-
+	
 	menu->addSeparator();
-	menu->addAction(tr("Exit"), qApp, SLOT(quit()));
-
+	menu->addAction(QObject::tr("Exit"), qApp, SLOT(quit()));
+	
 	menu->setDefaultAction(view);
 	return menu;
 }
 
 //------------------------------------------------------------------------------
-// Name: doCheck
-// Desc:
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::doCheck() {
 	// once a minute
@@ -123,28 +122,28 @@ void QGmailNotifier::doCheck() {
 	QString user = settings.value("username", "").value<QString>();
 	const QString pass = settings.value("password", "").value<QString>();
 	const int interval = settings.value("check_interval", 60000).value<int>();
-
-	timer_->setInterval(interval);
-
+	
+	m_Timer->setInterval(interval);
+	
 	if(user.isEmpty() || pass.isEmpty()) {
 		show();
 	} else {
 		if(!user.endsWith("@gmail.com")) {
 			user.append("@gmail.com");
 		}
-		animationTimer_->start(200);
-		trayIcon_->setToolTip(tr("Reading feed"));
-		gmailFeed_->fetch(user, pass);
+		m_AnimTimer->start(200);
+		m_GmailFeed->fetch(user, pass);
+		
 	}
 }
 
 //------------------------------------------------------------------------------
-// Name: showEvent
-// Desc: sets all of the widgets values based on the settings
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::showEvent(QShowEvent *event) {
 	Q_UNUSED(event);
-	QSettings settings;
+	QSettings settings;	
 	ui.txtUser->setText(settings.value("username", "").value<QString>());
 	ui.txtPass->setText(settings.value("password", "").value<QString>());
 	ui.spnInterval->setValue(settings.value("check_interval", 60000).value<int>());
@@ -153,8 +152,8 @@ void QGmailNotifier::showEvent(QShowEvent *event) {
 }
 
 //------------------------------------------------------------------------------
-// Name: accept
-// Desc: stores settings when the options dialog box is accepted
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::accept() {
 	QSettings settings;
@@ -167,16 +166,17 @@ void QGmailNotifier::accept() {
 }
 
 //------------------------------------------------------------------------------
-// Name: doView
-// Desc: loads the gmail main page in the user's default browser
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::doView() {
-	openURL("http://mail.google.com/mail");
+	QDesktopServices::openUrl(QUrl("http://mail.google.com/mail"));
+	qDebug() << "opening URL: " << "http://mail.google.com/mail";
 }
 
 //------------------------------------------------------------------------------
-// Name: activated
-// Desc: lets us know when the user has double clicked the tray icon
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::activated(QSystemTrayIcon::ActivationReason reason) {
 	if(reason == QSystemTrayIcon::DoubleClick) {
@@ -185,145 +185,119 @@ void QGmailNotifier::activated(QSystemTrayIcon::ActivationReason reason) {
 }
 
 //------------------------------------------------------------------------------
-// Name: doTell
-// Desc: tells the user about new mails, even if they are all "old news"
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::doTell() {
-	seen_.clear();
-	alertIndex_ = -1;
-	if(currentMails_.empty()) {
+	m_Seen.clear();
+	m_AlertIndex = -1;
+	if(m_CurrentMails.size() == 0) {
 		QSettings settings;
 		const int time = settings.value("popup_time_span").value<int>();
-
-		trayIcon_->showMessage("", "Your inbox contains no unread conversations." , QSystemTrayIcon::Information, time);
+		trayIcon->showMessage("", "Your inbox contains no unread conversations." , QSystemTrayIcon::Information, time);
 	} else {
 		doTellReal();
 	}
 }
 
 //------------------------------------------------------------------------------
-// Name: doTellReal
-// Desc: actual implemenation of tell
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::doTellReal() {
 	QSettings settings;
 	const int time = settings.value("popup_time_span").value<int>();
 
-	Q_FOREACH(GMailEntry entry, currentMails_) {
-		if(!seen_.contains(entry.id)) {
-			trayIcon_->showMessage(entry.author_name + " : " + entry.title, entry.summary, QSystemTrayIcon::Information, time);
-			seen_.insert(entry.id);
+	foreach(GMailEntry entry, m_CurrentMails) {
+		if(!m_Seen.contains(entry.id)) {
+			trayIcon->showMessage(entry.author_name + " : " + entry.title, entry.summary, QSystemTrayIcon::Information, time);
+			m_Seen.insert(entry.id);
 		}
-		++alertIndex_;
+		++m_AlertIndex;
 	}
 }
 
 //------------------------------------------------------------------------------
-// Name: doOptions
-// Desc: shows the options dialog
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::doOptions() {
 	show();
 }
 
 //------------------------------------------------------------------------------
-// Name: doAbout
-// Desc: shows the about dialog
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::doAbout() {
-	alertIndex_ = -1;
-
-	trayIcon_->showMessage(
-		tr("QGmailNotifier"),
-		tr("QGmailNotifier version %1. Written by Evan Teran\nIcons are the trademark of Google\n\n"
-		"Google, Gmail and Google Mail are registered trademarks of Google Inc.\n"
-		"QGmailNotifier nor its author are in any way affiliated nor endorsed by Google Inc.\n").arg(version),
-		QSystemTrayIcon::Information,
-		0);
+	QMessageBox::about(
+		this, 
+		"QGmailNotifier", 
+		"QGmailNotifier version 2008.1. Written by <a href='mailto:eteran@alum.rit.edu'>Evan Teran</a><br>Icons are the trademark of <a href='http://www.google.com/'>Google</a><br><br>"
+		"Google, Gmail and Google Mail are registered trademarks of Google Inc.<br>"
+		"QGmailNotifier nor its author are in any way affiliated nor endorsed by Google Inc.<br>"
+		);				
 }
 
 //------------------------------------------------------------------------------
-// Name: fetchComplete
-// Desc: lets us know that the main module is finished fetching
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
-void QGmailNotifier::fetchComplete(QNetworkReply *reply) {
-
-	animationTimer_->stop();
-	animationIndex_ = 0;
-
-	if(reply->error() != QNetworkReply::NoError) {
+void QGmailNotifier::fetchComplete(bool error) {
+	
+	m_AnimTimer->stop();
+	m_AnimIndex = 0;
+	
+	if(error) {
 		QSettings settings;
 		const int time = settings.value("popup_time_span").value<int>();
-
-		trayIcon_->setIcon(QIcon(":/img/error.svgz"));
-		trayIcon_->showMessage("Error", reply->errorString(), QSystemTrayIcon::Critical, time);
+		
+		trayIcon->setIcon(QIcon(":/img/error.ico"));
+		trayIcon->showMessage("Error", m_GmailFeed->http()->errorString(), QSystemTrayIcon::Critical, time);
 	} else {
+	
+		m_CurrentMails = m_GmailFeed->mail();
 
-		currentMails_ = gmailFeed_->mail();
-
-		if(currentMails_.size() == 1) {
-			trayIcon_->setToolTip(tr("%1 unread conversation").arg(currentMails_.size()));
+		if(m_CurrentMails.size() == 1) {
+			trayIcon->setToolTip(QString(QObject::tr("%1 unread conversation")).arg(m_CurrentMails.size()));
 		} else {
-			trayIcon_->setToolTip(tr("%1 unread conversations").arg(currentMails_.size()));
+			trayIcon->setToolTip(QString(QObject::tr("%1 unread conversations")).arg(m_CurrentMails.size()));
 		}
 
-		alertIndex_ = -1;
+		m_AlertIndex = -1;
 
-		if(currentMails_.size() != 0) {
+		if(m_CurrentMails.size() != 0) {
 			doTellReal();
-#if 0
-			QFont f;
-			f.setPixelSize(14);
-			f.setWeight(QFont::Black);
-
-			QPixmap pm(":/img/blue.svgz");
-			QPainter p(&pm);
-
-			p.setFont(f);
-			p.setPen(Qt::black);
-			p.drawText(0, 0, pm.width(), pm.height(), Qt::AlignCenter, QString::number(currentMails_.size()));
-
-			trayIcon_->setIcon(pm);
-#else
-			trayIcon_->setIcon(QIcon(":/img/blue.svgz"));
-#endif
+			trayIcon->setIcon(QIcon(":/img/blue.ico"));
 		} else {
-			trayIcon_->setIcon(QIcon(":/img/normal.svgz"));
+			trayIcon->setIcon(QIcon(":/img/normal.ico"));
 		}
-
-		trayIcon_->setContextMenu(createMenu());
+		
+		trayIcon->setContextMenu(createMenu());
 	}
 }
 
 //------------------------------------------------------------------------------
-// Name: openURL
-// Desc: opens a URL using the default browser
-//------------------------------------------------------------------------------
-void QGmailNotifier::openURL(const QString &url) {
-	QDesktopServices::openUrl(QUrl::fromEncoded(url.toLatin1()));
-	qDebug() << "opening URL: " << url;
-}
-
-//------------------------------------------------------------------------------
-// Name: messageClicked
-// Desc: the user has clicked on our message
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::messageClicked() {
-	readMessage(alertIndex_);
+	readMessage(m_AlertIndex);
 }
 
 //------------------------------------------------------------------------------
-// Name: readMessage
-// Desc:
+// Name: 
+// Desc: 
 //------------------------------------------------------------------------------
 void QGmailNotifier::readMessage(int index) {
 	if(index != -1) {
-		if(index < currentMails_.size()) {
-			GMailEntry entry = currentMails_[index];
+		if(index < m_CurrentMails.size()) {
+			GMailEntry entry = m_CurrentMails[index];
+			
 			// work around a bug in QT 4.4.0's QUrl
-			//entry.link.replace("%40", "@");
-
-			openURL(entry.link);
+			entry.link.replace("%40", "@");
+			QDesktopServices::openUrl(QUrl(entry.link));
+			qDebug() << "opening URL: " << entry.link;
 		}
 	}
 }

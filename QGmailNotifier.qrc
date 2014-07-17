@@ -1,10 +1,9 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="/">
-	<file>img/blue.svgz</file>
-	<file>img/error.svgz</file>
+	<file>img/blue.ico</file>
+	<file>img/error.ico</file>
 	<file>img/gmail.png</file>
-	<file>img/green.svgz</file>
-	<file>img/normal.svgz</file>
-	<file>img/close.png</file>
+	<file>img/green.ico</file>
+	<file>img/normal.ico</file>
 </qresource>
 </RCC>
