@@ -8,6 +8,9 @@ DEPENDPATH  += .
 INCLUDEPATH += .
 QT          += network
 
+target.path = /bin/
+INSTALLS    += target
+
 greaterThan(QT_MAJOR_VERSION, 4) {
 	QT += widgets
 }
