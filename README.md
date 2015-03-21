@@ -1,3 +1,6 @@
+qgmailnotifier is a portable Qt4/Qt5 based GMail notifier, which is designed to provide all of the functionality that the official Windows notifier has, and more.
+
+[http://www.codef00.com/img/qgmailnotifier1.png]
 
 The only requirement for building qgmailnotifier is Qt4/Qt5.
 
@@ -14,7 +17,7 @@ $ make
 
 Finally, to install into "/usr/bin":
 
-# make INSTALL_ROOT=/usr/ install
+$ make INSTALL_ROOT=/usr/ install
 
 Note:
 
