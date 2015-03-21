@@ -1,6 +1,6 @@
 qgmailnotifier is a portable Qt4/Qt5 based GMail notifier, which is designed to provide all of the functionality that the official Windows notifier has, and more.
 
-[http://www.codef00.com/img/qgmailnotifier1.png]
+![Example Image](http://www.codef00.com/img/qgmailnotifier1.png)
 
 The only requirement for building qgmailnotifier is Qt4/Qt5.
 
