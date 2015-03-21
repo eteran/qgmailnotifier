@@ -6,18 +6,18 @@ The only requirement for building qgmailnotifier is Qt4/Qt5.
 
 Installation is simple. To build, simply type:
 
-$ qmake
-$ make
+  $ qmake
+  $ make
 
-On some distributions, the Qt4 qmake is called "qmake-qt4," so on these you 
+On some distributions, the Qt4 qmake is called `qmake-qt4`, so on these you 
 would type:
 
-$ qmake-qt4
-$ make
+  $ qmake-qt4
+  $ make
 
 Finally, to install into "/usr/bin":
 
-$ make INSTALL_ROOT=/usr/ install
+  $ make INSTALL_ROOT=/usr/ install
 
 Note:
 
