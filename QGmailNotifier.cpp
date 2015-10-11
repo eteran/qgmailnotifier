@@ -23,7 +23,7 @@ QGmailNotifier::QGmailNotifier(QWidget *parent, Qt::WindowFlags f) : QDialog(par
 
 	trayIcon_ = new QSystemTrayIcon(this);
 	trayIcon_->setContextMenu(createMenu());
-	trayIcon_->setIcon(QIcon(":/img/normal.svgz"));
+	trayIcon_->setIcon(QIcon::fromTheme("internet-mail"));
 
 	connect(trayIcon_, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(activated(QSystemTrayIcon::ActivationReason)));
 	connect(trayIcon_, SIGNAL(messageClicked()), this, SLOT(messageClicked()));
@@ -45,11 +45,10 @@ QGmailNotifier::QGmailNotifier(QWidget *parent, Qt::WindowFlags f) : QDialog(par
 // Desc:
 //------------------------------------------------------------------------------
 void QGmailNotifier::doAnim() {
-
 	if(animationIndex_ == 0) {
-		trayIcon_->setIcon(QIcon(":/img/green.svgz"));
+		trayIcon_->setIcon(QIcon::fromTheme("mail-read"));
 	} else {
-		trayIcon_->setIcon(QIcon(":/img/normal.svgz"));
+		trayIcon_->setIcon(QIcon::fromTheme("mail-replied"));
 	}
 
 	animationIndex_ = (animationIndex_ + 1) % 2;
@@ -255,7 +254,7 @@ void QGmailNotifier::fetchComplete(QNetworkReply *reply) {
 		QSettings settings;
 		const int time = settings.value("popup_time_span").value<int>();
 
-		trayIcon_->setIcon(QIcon(":/img/error.svgz"));
+		trayIcon_->setIcon(QIcon::fromTheme("script-error"));
 		trayIcon_->showMessage("Error", reply->errorString(), QSystemTrayIcon::Critical, time);
 	} else {
 
@@ -285,10 +284,10 @@ void QGmailNotifier::fetchComplete(QNetworkReply *reply) {
 
 			trayIcon_->setIcon(pm);
 #else
-			trayIcon_->setIcon(QIcon(":/img/blue.svgz"));
+			trayIcon_->setIcon(QIcon::fromTheme("mail-unread-new"));
 #endif
 		} else {
-			trayIcon_->setIcon(QIcon(":/img/normal.svgz"));
+			trayIcon_->setIcon(QIcon::fromTheme("mail-read"));
 		}
 
 		trayIcon_->setContextMenu(createMenu());
