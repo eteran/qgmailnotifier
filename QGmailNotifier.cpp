@@ -6,6 +6,7 @@
 #include <QMenu>
 #include <QNetworkReply>
 #include <QPainter>
+#include <QProcess>
 #include <QSettings>
 #include <QTimer>
 #include <QUrl>
@@ -149,6 +150,7 @@ void QGmailNotifier::showEvent(QShowEvent *event) {
 	ui.spnInterval->setValue(settings.value("check_interval", 60000).value<int>());
 	ui.spnPopup->setValue(settings.value("popup_time_span", 4000).value<int>());
 	ui.spnConversation->setValue(settings.value("max_conversations", 10).value<int>());
+	ui.txtCommand->setText(settings.value("shell_command", "").value<QString>());
 }
 
 //------------------------------------------------------------------------------
@@ -162,6 +164,7 @@ void QGmailNotifier::accept() {
 	settings.setValue("check_interval", ui.spnInterval->value());
 	settings.setValue("popup_time_span", ui.spnPopup->value());
 	settings.setValue("max_conversations", ui.spnConversation->value());
+	settings.setValue("shell_command", ui.txtCommand->text());
 	QDialog::accept();
 }
 
@@ -299,8 +302,13 @@ void QGmailNotifier::fetchComplete(QNetworkReply *reply) {
 // Desc: opens a URL using the default browser
 //------------------------------------------------------------------------------
 void QGmailNotifier::openURL(const QString &url) {
-	QDesktopServices::openUrl(QUrl::fromEncoded(url.toLatin1()));
-	qDebug() << "opening URL: " << url;
+	//QDesktopServices::openUrl(QUrl::fromEncoded(url.toLatin1()));
+	QSettings settings;
+	QString shellCommand = settings.value("shell_command", "").value<QString>();
+	
+  QProcess process;
+  process.startDetached(shellCommand + url);
+	//qDebug() << "opening URL: " << url;
 }
 
 //------------------------------------------------------------------------------
