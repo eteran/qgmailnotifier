@@ -302,13 +302,22 @@ void QGmailNotifier::fetchComplete(QNetworkReply *reply) {
 // Desc: opens a URL using the default browser
 //------------------------------------------------------------------------------
 void QGmailNotifier::openURL(const QString &url) {
-	//QDesktopServices::openUrl(QUrl::fromEncoded(url.toLatin1()));
+	//
 	QSettings settings;
 	QString shellCommand = settings.value("shell_command", "").value<QString>();
 	
-  QProcess process;
-  process.startDetached(shellCommand + url);
-	//qDebug() << "opening URL: " << url;
+	if (shellCommand.isEmpty()) {
+		QDesktopServices::openUrl(QUrl::fromEncoded(url.toLatin1()));
+		
+		qDebug() << "opening URL: " << url;
+	} else {
+		QProcess process;
+
+		shellCommand.replace(QString("$url"), url);
+		process.startDetached(shellCommand);
+		
+		qDebug() << "Running shell command: " << shellCommand;
+	}
 }
 
 //------------------------------------------------------------------------------
