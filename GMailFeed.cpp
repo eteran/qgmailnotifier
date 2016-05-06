@@ -57,6 +57,7 @@ void GMailFeed::requestFinished(QNetworkReply *reply) {
 
 	if(reply->error() != QNetworkReply::NoError) {
 		qWarning() << "Aborting: got status code: " << reply->error();
+		networkManager_->setNetworkAccessible(QNetworkAccessManager::Accessible);
 	} else {
 		const QByteArray data = reply->readAll();
 		xmlReader_.addData(data);
